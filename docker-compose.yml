@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: payment-invoice-app
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=payments
+      - TZ=Asia/Kolkata
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    container_name: payment-invoice-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: payments
+    ports:
+      - "5432:5432"
+    volumes:
+      - payments_:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  payments_: {}
